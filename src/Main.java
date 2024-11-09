@@ -6,6 +6,6 @@ public class Main {
         var fd = new LettersFrequencyDictionary();
         var ui = new UI(fd);
 
-        ui.Run();
+        ui.run();
     }
 }

@@ -6,6 +6,6 @@ import java.util.Map;
 
 
 public interface IFrequencyDictionary {
-    void Read(InputStream input) throws IOException;
+    void read(InputStream input) throws IOException;
     Map<Character, Integer> getFrequencies();
 }

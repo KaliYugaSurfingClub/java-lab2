@@ -12,7 +12,7 @@ public class LettersFrequencyDictionary implements port.IFrequencyDictionary {
         this.map = new HashMap<>();
     }
 
-    public void Read(InputStream input) throws IOException {
+    public void read(InputStream input) throws IOException {
         InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
 
         int c;

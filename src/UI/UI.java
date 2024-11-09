@@ -15,7 +15,7 @@ public class UI {
         this.dict = dict;
     }
 
-    public void Run() {
+    public void run() {
         read();
         write();
     }
@@ -25,7 +25,7 @@ public class UI {
 
         for (String path : inputFilePaths) {
             try (FileInputStream fis = new FileInputStream(path)) {
-                dict.Read(fis);
+                dict.read(fis);
             } catch (IOException e) {
                 System.out.printf("Error: %s while reading file: %s\n", e.getMessage(), path);
             }

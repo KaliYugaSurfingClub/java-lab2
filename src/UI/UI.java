@@ -5,11 +5,8 @@ import port.IFrequencyDictionary;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+
 
 public class UI {
     private final IFrequencyDictionary dict;
@@ -30,7 +27,7 @@ public class UI {
             try (FileInputStream fis = new FileInputStream(path)) {
                 dict.Read(fis);
             } catch (IOException e) {
-                System.out.println("Error reading file " + path + ": " + e.getMessage());
+                System.out.printf("Error: %s while reading file: %s\n", e.getMessage(), path);
             }
         }
     }
@@ -39,48 +36,48 @@ public class UI {
         var outputFilePath = promptForOutputFilePath();
 
         try (FileOutputStream fos = new FileOutputStream(outputFilePath)) {
-            for (HashMap.Entry<Character, Integer> entry : dict.getAscendingFrequencies(false)) {
-                var line = buildLine(entry.getKey(), entry.getValue());
+            for (Map.Entry<Character, Integer> entry : dict.getFrequencies().entrySet()) {
+                var line = String.format("Letter: '%c', Frequency: %d\n", entry.getKey(), entry.getValue());
                 fos.write(line.getBytes(StandardCharsets.UTF_8));
             }
+
+            System.out.printf("file %s was filled\n", outputFilePath);
         } catch (IOException e) {
-            System.out.println("Error writing to output file: " + e.getMessage());
+            System.out.printf("Error writing to output file: %s\n", e.getMessage());
         }
     }
 
-    private String buildLine(char letter, Integer count) {
-        return String.format("Letter: '%c', Frequency: %d%n", letter, count);
-    }
-
     private List<String> promptForInputFilePaths() {
-        Scanner scanner = new Scanner(System.in);
+        var scanner = new Scanner(System.in);
         var filePaths = new ArrayList<String>();
 
         while (true) {
             System.out.print("Enter input file path: ");
-            var filePath = scanner.nextLine();
 
-            File file = new File(filePath);
+            var filePath = scanner.nextLine();
+            var file = new File(filePath);
+            var absolute = file.getAbsolutePath();
 
             if (!file.exists()) {
-                System.out.println("Input file not found, please try again.");
+                System.out.printf("Input file not found: %s, please try again.\n", absolute);
                 continue;
             }
 
             if (file.isFile()) {
-                System.out.println("Input file found: " + file.getAbsolutePath());
+                System.out.printf("Input file found: %s\n", absolute);
                 filePaths.add(file.getAbsolutePath());
                 break;
             }
 
             if (file.isDirectory()) {
-                System.out.println("Input directory found: " + file.getAbsolutePath());
+                System.out.printf("Input directory found: %s\n", absolute);
                 try {
-                    List<String> collectedPaths = collectFilesFromDirectory(file.toPath());
-                    filePaths.addAll(collectedPaths);
+                    Files.walk(file.toPath())
+                            .filter(Files::isRegularFile)
+                            .forEach(path -> filePaths.add(path.toString()));
                     break;
                 } catch (IOException e) {
-                    System.out.println("Error collecting files from directory: " + e.getMessage() + " try again");
+                    System.out.printf("Error: %s collecting files from directory: %s, please try again.\n", e.getMessage(), absolute);
                 }
             }
         }
@@ -89,41 +86,33 @@ public class UI {
     }
 
     private String promptForOutputFilePath() {
-        Scanner scanner = new Scanner(System.in);
-        String filePath;
+        var scanner = new Scanner(System.in);
+        var filePath = "";
 
         while (true) {
             System.out.print("Enter output file path: ");
-            filePath = scanner.nextLine();
 
-            File file = new File(filePath);
+            filePath = scanner.nextLine();
+            var file = new File(filePath);
+            var absolute = file.getAbsolutePath();
+
             if (file.exists()) {
-                System.out.println("Output file found: " + file.getAbsolutePath());
+                System.out.printf("Output file found: %s\n", absolute);
                 break;
             }
 
             try {
                 if (file.createNewFile()) {
-                    System.out.println("Output file created: " + file.getAbsolutePath());
+                    System.out.printf("Output file created: %s\n", absolute);
                     break;
                 }
 
-                System.out.println("Could not create output file, please try again.");
+                System.out.printf("Could not create output file in %s, please try again.\n", absolute);
             } catch (IOException e) {
-                System.out.println("An error occurred while creating the output file: " + e.getMessage());
+                System.out.printf("Error: %s creating output file: %s, please try again.\n", e.getMessage(), absolute);
             }
         }
 
         return filePath;
-    }
-
-    //todo return paths
-    private List<String> collectFilesFromDirectory(Path directory) throws IOException {
-        List<String> filePaths = new ArrayList<>();
-        Files.walk(directory)
-                .filter(Files::isRegularFile)
-                .forEach(path -> filePaths.add(path.toString()));
-
-        return filePaths;
     }
 }

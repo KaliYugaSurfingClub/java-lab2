@@ -2,10 +2,8 @@ package core;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 public class LettersFrequencyDictionary implements port.IFrequencyDictionary {
     private final HashMap<Character, Integer> map;
@@ -15,24 +13,19 @@ public class LettersFrequencyDictionary implements port.IFrequencyDictionary {
     }
 
     public void Read(InputStream input) throws IOException {
-        int c;
+        InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
 
-        while ((c = input.read()) != -1) {
-            char charStr = Character.toLowerCase((char) c);
-            if (Character.isLetter(charStr)) {
-                map.put(charStr, map.getOrDefault(charStr, 0) + 1);
+        int c;
+        while ((c = reader.read()) != -1) {
+            char character = (char) c;
+
+            if (Character.isLetter(character)) {
+                map.put(character, map.getOrDefault(character, 0) + 1);
             }
         }
     }
 
-    public List<HashMap.Entry<Character, Integer>> getAscendingFrequencies(boolean ascending) {
-        List<HashMap.Entry<Character, Integer>> sortedList = new ArrayList<>(map.entrySet());
-
-        sortedList.sort((entry1, entry2) -> {
-            int comparison = entry1.getValue().compareTo(entry2.getValue());
-            return ascending ? comparison : -comparison;
-        });
-
-        return sortedList;
+    public Map<Character, Integer> getFrequencies() {
+        return Collections.unmodifiableMap(map);
     }
 }

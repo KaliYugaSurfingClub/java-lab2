@@ -1,6 +1,9 @@
 package UI;
 
-import port.IFrequencyDictionary;
+import core.FrequencyDictionary;
+import core.IReader;
+import core.LettersReader;
+import core.WordsReader;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -9,15 +12,41 @@ import java.util.*;
 
 
 public class UI {
-    private final IFrequencyDictionary dict;
+    private final Scanner scanner;
+    private FrequencyDictionary dict;
 
-    public UI(IFrequencyDictionary dict) {
-        this.dict = dict;
+    public UI() {
+        scanner = new Scanner(System.in);
     }
 
     public void run() {
+        setMode();
         read();
         write();
+    }
+
+    private void setMode() {
+        System.out.print("Enter mode words/letters: ");
+
+        IReader reader;
+
+        while (true) {
+            var mode = scanner.nextLine();
+
+            if (mode.equals("words")) {
+                reader = new WordsReader();
+                break;
+            }
+
+            if (mode.equals("letters")) {
+                reader = new LettersReader();
+                break;
+            }
+
+            System.out.printf("%s is invalid mode, try again", mode);
+        }
+
+        this.dict = new FrequencyDictionary(reader);
     }
 
     private void read() {
@@ -36,8 +65,8 @@ public class UI {
         var outputFilePath = promptForOutputFilePath();
 
         try (FileOutputStream fos = new FileOutputStream(outputFilePath)) {
-            for (Map.Entry<Character, Integer> entry : dict.getFrequencies().entrySet()) {
-                var line = String.format("Letter: '%c', Frequency: %d\n", entry.getKey(), entry.getValue());
+            for (Map.Entry<String, Integer> entry : dict.getFrequencies().entrySet()) {
+                var line = String.format("'%s' : %d\n", entry.getKey(), entry.getValue());
                 fos.write(line.getBytes(StandardCharsets.UTF_8));
             }
 
@@ -48,7 +77,6 @@ public class UI {
     }
 
     private List<String> promptForInputFilePaths() {
-        var scanner = new Scanner(System.in);
         var filePaths = new ArrayList<String>();
 
         while (true) {
@@ -86,7 +114,6 @@ public class UI {
     }
 
     private String promptForOutputFilePath() {
-        var scanner = new Scanner(System.in);
         var filePath = "";
 
         while (true) {
